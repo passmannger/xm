@@ -6,59 +6,42 @@ exports.handler = async (event) => {
   if (!video_url) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Missing 'url' parameter" })
+      body: JSON.stringify({ error: "Missing ?url= parameter" })
     };
   }
 
+  const apiUrl = "https://api.easydownloader.app/api-extract/";
+
+  const payload = {
+    video_url,
+    pagination: false,
+    key: "175p86550h7m5r3dsiesninx194"
+  };
+
   try {
-    const response = await fetch("https://api.easydownloader.app/api-extract/", {
+    const response = await fetch(apiUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        video_url: video_url,
-        pagination: false,
-        key: "175p86550h7m5r3dsiesninx194"
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
 
-    const result = await response.json();
+    const data = await response.json();
 
-    if (result.status !== "success" || !result.final_urls || result.final_urls.length === 0) {
+    if (data.status !== "success" || !data.final_urls) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Video extraction failed" })
+        body: JSON.stringify({ error: "Failed to extract video." })
       };
     }
 
-    const video = result.final_urls[0];
-    const unique = new Set();
-
-    const links = video.links
-      .filter(link => {
-        const valid = link.link_url.endsWith(".mp4") && !link.link_url.endsWith(".m3u8") && !unique.has(link.link_url);
-        if (valid) unique.add(link.link_url);
-        return valid;
-      })
-      .map(link => ({
-        quality: link.file_quality,
-        url: link.link_url
-      }));
-
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        title: video.title,
-        thumb: video.thumb,
-        links: links
-      })
+      body: JSON.stringify(data)
     };
-
-  } catch (err) {
+  } catch (e) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal server error", details: err.message })
+      body: JSON.stringify({ error: "Internal error", detail: e.message })
     };
   }
 };
