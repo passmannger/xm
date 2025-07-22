@@ -42,7 +42,11 @@ exports.handler = async (event) => {
 
     const links = video.links
       .filter(link => {
-        const valid = link.link_url.includes(".m3u8") && !unique.has(link.link_url);
+        const isM3U8 = link.link_url.includes(".m3u8");
+        const isKV = link.link_url.includes("kv-h.phncdn.com");
+        const notSeen = !unique.has(link.link_url);
+        const valid = isM3U8 && isKV && notSeen;
+
         if (valid) unique.add(link.link_url);
         return valid;
       })
