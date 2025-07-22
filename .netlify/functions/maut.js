@@ -25,10 +25,16 @@ exports.handler = async (event) => {
 
     const result = await response.json();
 
-    if (result.status !== "success" || !result.final_urls || result.final_urls.length === 0) {
+    // Check valid response structure
+    if (
+      result.status !== "success" ||
+      !result.final_urls ||
+      result.final_urls.length === 0 ||
+      !result.final_urls[0].links
+    ) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Video extraction failed" })
+        body: JSON.stringify({ error: "Video extraction failed or invalid structure" })
       };
     }
 
