@@ -25,7 +25,6 @@ exports.handler = async (event) => {
 
     const result = await response.json();
 
-    // Check valid response structure
     if (
       result.status !== "success" ||
       !result.final_urls ||
@@ -43,7 +42,7 @@ exports.handler = async (event) => {
 
     const links = video.links
       .filter(link => {
-        const valid = link.link_url.endsWith(".mp4") && !link.link_url.endsWith(".m3u8") && !unique.has(link.link_url);
+        const valid = link.link_url.includes(".mp4") && !link.link_url.includes(".m3u8") && !unique.has(link.link_url);
         if (valid) unique.add(link.link_url);
         return valid;
       })
