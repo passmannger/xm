@@ -1,24 +1,21 @@
 export async function handler(event, context) {
-  // Only allow GET requests
   if (event.httpMethod !== "GET") {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed. Use GET with ?url=" }),
+      body: JSON.stringify({ error: "Only GET allowed. Use ?url=" }),
     };
   }
 
-  // Get card data from query param
   const card = event.queryStringParameters.url;
 
   if (!card) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Missing 'url' parameter with card data." }),
+      body: JSON.stringify({ error: "Missing 'url' parameter" }),
     };
   }
 
   try {
-    // Call chkr.cc API
     const response = await fetch("https://api.chkr.cc/", {
       method: "POST",
       headers: {
@@ -27,16 +24,25 @@ export async function handler(event, context) {
       body: JSON.stringify({ data: card }),
     });
 
-    const result = await response.json();
+    let result = await response.json();
+
+    // Modify message if it exists
+    if (result?.message) {
+      result.message = result.message.replace(/\[.*?\]/, "[Made by Maut]");
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, card, result }),
+      body: JSON.stringify({
+        success: true,
+        card,
+        result,
+      }),
     };
-  } catch (error) {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to contact chkr.cc", details: error.message }),
+      body: JSON.stringify({ error: "API call failed", details: err.message }),
     };
   }
-      }
+        }
